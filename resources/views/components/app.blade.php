@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    @include('partials.head')
+    @include('components.head')
     <title>@yield('title', 'Folio') - Folio</title>
 </head>
 <body>
