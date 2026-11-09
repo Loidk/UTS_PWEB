@@ -24,7 +24,6 @@ class PageController extends Controller
             'username.max'      => 'Username maksimal 30 karakter.',
         ]);
 
-
         return redirect()->route('dashboard', [
             'username' => $request->input('username'),
         ]);
@@ -39,16 +38,16 @@ class PageController extends Controller
             return redirect()->route('login');
         }
 
-        $tugas = collect($this->daftarTugas());
+        $tugas = collect($this->daftarTugas($username));
 
         $aktif    = $tugas->where('status', '!=', 'Selesai');
         $mendesak = $aktif->filter(fn ($t) => $t['sisa'] <= 3)->count();
 
         $ringkasan = [
-            ['angka' => $tugas->count(),                                    'label' => 'Total tugas',        'tone' => ''],
-            ['angka' => $tugas->where('status', 'Selesai')->count(),        'label' => 'Selesai',            'tone' => 'ok'],
-            ['angka' => $tugas->where('status', 'Dikerjakan')->count(),     'label' => 'Sedang dikerjakan',  'tone' => ''],
-            ['angka' => $mendesak,                                          'label' => 'Tenggat 3 hari lagi', 'tone' => 'warn'],
+            ['angka' => $tugas->count(),                                'label' => 'Total tugas',         'tone' => ''],
+            ['angka' => $tugas->where('status', 'Selesai')->count(),    'label' => 'Selesai',             'tone' => 'ok'],
+            ['angka' => $tugas->where('status', 'Dikerjakan')->count(), 'label' => 'Sedang dikerjakan',   'tone' => ''],
+            ['angka' => $mendesak,                                      'label' => 'Tenggat 3 hari lagi', 'tone' => 'warn'],
         ];
 
         $terdekat = $aktif->sortBy('sisa')->take(4)->values()->all();
@@ -65,12 +64,13 @@ class PageController extends Controller
             return redirect()->route('login');
         }
 
-        $tugas = collect($this->daftarTugas())->sortBy('sisa')->values()->all();
+        $tugas = collect($this->daftarTugas($username))->sortBy('sisa')->values()->all();
 
         return view('pengelolaan', compact('username', 'tugas'));
     }
 
     // PROFILE
+
     public function profile(Request $request)
     {
         $username = trim((string) $request->query('username', ''));
@@ -78,45 +78,97 @@ class PageController extends Controller
             return redirect()->route('login');
         }
 
-        
-        $biodata = [
-            'Nama lengkap' => 'TungTung',
-            'NIM'          => '123456789',
-            'Program studi' => 'Informatika',
-            'Kampus'       => 'Universitas Jember',
-            'Semester'     => '0',
-        ];
+        $pengguna = $this->pengguna($username);
+        $biodata  = $pengguna['biodata'];
 
-        $kebiasaan = [
-            'Kerjakan tugas berbobot besar lebih dulu',
-            'Tulis tenggat di Folio, bukan di kepala',
-            'Sisakan sehari sebelum tenggat untuk memeriksa ulang',
-        ];
+        $foto = ($pengguna['foto'] && file_exists(public_path($pengguna['foto'])))
+            ? asset($pengguna['foto'])
+            : null;
 
-        return view('profile', compact('username', 'biodata', 'kebiasaan'));
+        return view('profile', compact('username', 'biodata', 'foto'));
     }
 
     // DATA
 
-    private function daftarTugas(): array
+    private function pengguna(string $username): array
+    {
+        $semua = $this->dataPengguna();
+
+        return $semua[mb_strtolower($username)] ?? $semua['_default'];
+    }
+
+    private function dataPengguna(): array
+    {
+        return [
+
+            '1' => [
+                'foto'    => 'images/1.jpg',
+                'biodata' => [
+                    'Nama lengkap'  => 'Andro Mahesha Aprian',
+                    'NIM'           => '000000001',
+                    'Program studi' => 'Informatika',
+                    'Kampus'        => 'Universitas Jember',
+                    'Semester'      => '3',
+                ],
+                'tugas' => [
+                    ['matkul' => 'Pemrograman Web',        'judul' => 'UTS Laravel',     'hari' => 2,  'prioritas' => 'Tinggi', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Arsitektur Komputer',    'judul' => 'Evaluasi 3',      'hari' => 1,  'prioritas' => 'Tinggi', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Grafika Komputer',       'judul' => 'Final Project',   'hari' => 5,  'prioritas' => 'Sedang', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Pemrograman Fungsional', 'judul' => 'Final project',   'hari' => 9,  'prioritas' => 'Sedang', 'status' => 'Belum'],
+
+                ],
+            ],
+
+            'germok' => [
+                'foto'    => 'images/2.jpg',
+                'biodata' => [
+                    'Nama lengkap'  => 'Gerald Karbit',
+                    'NIM'           => '000000000000',
+                    'Program studi' => 'Sistem Teknologi informatika',
+                    'Kampus'        => 'Universitas Jember',
+                    'Semester'      => '0',
+                ],
+                'tugas' => [
+                    ['matkul' => 'Basis Data',     'judul' => 'ERD toko online',  'hari' => 3,  'prioritas' => 'Tinggi', 'status' => 'Belum'],
+                    ['matkul' => 'Matematika',     'judul' => 'Soal integral',    'hari' => 6,  'prioritas' => 'Rendah', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Bahasa Inggris', 'judul' => 'Esai 300 kata',    'hari' => -1, 'prioritas' => 'Sedang', 'status' => 'Selesai'],
+                ],
+            ],
+
+            // default
+            '_default' => [
+                'foto'    => 'images/profil.jpg',
+                'biodata' => [
+                    'Nama lengkap'  => 'TungTung',
+                    'NIM'           => '123456789',
+                    'Program studi' => 'Informatika',
+                    'Kampus'        => 'Universitas Jember',
+                    'Semester'      => '100',
+                ],
+                'tugas' => [
+                    ['matkul' => 'Pemrograman Web',                     'judul' => 'UTS', 'hari' => 2,  'prioritas' => 'Tinggi', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Arsitektur Komputer',                 'judul' => 'UTS', 'hari' => 1,  'prioritas' => 'Tinggi', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Grafika Komputer',                    'judul' => 'UTS', 'hari' => 5,  'prioritas' => 'Sedang', 'status' => 'Dikerjakan'],
+                    ['matkul' => 'Pemrograman Fungsional',              'judul' => 'UTS', 'hari' => 9,  'prioritas' => 'Sedang', 'status' => 'Belum'],
+                    ['matkul' => 'Pemrograman Berorientasi Objek',      'judul' => 'UTS', 'hari' => 6,  'prioritas' => 'Sedang', 'status' => 'Belum'],
+                    ['matkul' => 'Analisis dan Desain Perangkat Lunak', 'judul' => 'UTS', 'hari' => 12, 'prioritas' => 'Rendah', 'status' => 'Belum'],
+                    ['matkul' => 'Pertanian Industrial Berkelanjutan',  'judul' => 'UTS', 'hari' => 14, 'prioritas' => 'Rendah', 'status' => 'Belum'],
+                ],
+            ],
+        ];
+    }
+
+    private function daftarTugas(string $username): array
     {
         $hariIni = Carbon::today();
-
-        $data = [
-            ['matkul' => 'Pemrograman Web',        'judul' => 'UTS','tenggat' => $hariIni->copy()->addDays(2),  'prioritas' => 'Tinggi',  'status' => 'Dikerjakan'],
-            ['matkul' => 'Arsitektur Komputer',    'judul' => 'UTS','tenggat' => $hariIni->copy()->addDays(1),  'prioritas' => 'Tinggi',  'status' => 'Dikerjakan'],
-            ['matkul' => 'Grafika Komputer',       'judul' => 'UTS','tenggat' => $hariIni->copy()->addDays(5),  'prioritas' => 'Sedang',  'status' => 'Dikerjakan'],
-            ['matkul' => 'Pemrograman Fungsional', 'judul' => 'UTS','tenggat' => $hariIni->copy()->addDays(9),  'prioritas' => 'Sedang',  'status' => 'Belum'],
-            ['matkul' => 'Pemrograman Berorientasi Objek', 'judul' => 'UTS', 'tenggat' => $hariIni->copy()->addDays(6),  'prioritas' => 'Sedang',  'status' => 'Belum'],
-            ['matkul' => 'Analisis dan Desain Perangkat Lunak', 'judul' => 'UTS', 'tenggat' => $hariIni->copy()->addDays(12), 'prioritas' => 'Rendah',  'status' => 'Belum'],
-            ['matkul' => 'Pertanian Industrial Berkelanjutan', 'judul' => 'UTS', 'tenggat' => $hariIni->copy()->addDays(14), 'prioritas' => 'Rendah', 'status' => 'Belum'],
-        ];
+        $data    = $this->pengguna($username)['tugas'];
 
         return array_map(function ($t) use ($hariIni) {
-            $sisa = (int) $hariIni->diffInDays($t['tenggat'], false);
+            $tenggat = $hariIni->copy()->addDays($t['hari']);
+            $sisa    = (int) $hariIni->diffInDays($tenggat, false);
 
             $t['sisa']         = $sisa;
-            $t['tenggat_teks'] = $t['tenggat']->format('d/m/Y');
+            $t['tenggat_teks'] = $tenggat->format('d/m/Y');
 
             if ($t['status'] === 'Selesai') {
                 $t['sisa_teks'] = 'Selesai';
