@@ -101,7 +101,7 @@ class PageController extends Controller
     {
         return [
 
-            '1' => [
+            'andro' => [
                 'foto'    => 'images/1.jpg',
                 'biodata' => [
                     'Nama lengkap'  => 'Andro Mahesha Aprian',
