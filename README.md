@@ -38,7 +38,7 @@ Aplikasi web berbasis **Laravel** yang dibuat untuk memenuhi tugas **Ujian Tenga
 - **Frontend:** Blade Template, CSS, JavaScript
 
 
-## 🚀 Cara Menjalankan
+## Cara Menjalankan
 
 ### Prasyarat
 - PHP 8.2 atau lebih baru
