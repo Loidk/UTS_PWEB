@@ -4,7 +4,8 @@ Aplikasi web berbasis **Laravel** yang dibuat untuk memenuhi tugas **Ujian Tenga
 
 ## Deskripsi
 
-[Tuliskan deskripsi singkat aplikasi, misalnya: aplikasi ini digunakan untuk mengelola data ... dengan fitur login, dashboard, manajemen data pengelola, dan profil pengguna.]
+Folio, yaitu aplikasi pencatat tugas kuliah. Website ini dibangun menggunakan Laravel murni dengan pola MVC dan templating Blade. Saya tidak memakai starter kit dan tidak memakai database. Semua data disimpan dalam bentuk array di controller. Untuk tampilannya saya menulis CSS sendiri, dan ada sedikit JavaScript untuk fitur filter.
+Tema pengelolaan yang saya pilih adalah pengelolaan tugas kuliah. Di dalamnya ada daftar tugas lengkap dengan mata kuliah, tenggat, prioritas, dan status pengerjaan. Alur penggunaannya dimulai dari login, lalu dashboard, profil, dan terakhir halaman pengelolaan
 
 ## Fitur
 
